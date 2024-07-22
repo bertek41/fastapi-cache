@@ -79,8 +79,6 @@ def _uncacheable(request: Optional[Request]) -> bool:
         return True
     if request is None:
         return False
-    if request.method != "GET":
-        return True
     return request.headers.get("Cache-Control") in ("no-store", "no-cache")
 
 
@@ -113,7 +111,7 @@ def cache(
     )
 
     def wrapper(
-        func: Callable[P, Awaitable[R]]
+        func: Callable[P, Awaitable[R]],
     ) -> Callable[P, Awaitable[Union[R, Response]]]:
         # get_typed_signature ensures that any forward references are resolved first
         wrapped_signature = get_typed_signature(func)

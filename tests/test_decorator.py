@@ -100,15 +100,18 @@ def test_pydantic_model() -> None:
 def test_non_get() -> None:
     with TestClient(app) as client:
         response = client.put("/uncached_put")
-        assert "X-FastAPI-Cache" not in response.headers
+        assert "X-FastAPI-Cache" in response.headers
         assert response.json() == {"value": 1}
         response = client.put("/uncached_put")
-        assert "X-FastAPI-Cache" not in response.headers
-        assert response.json() == {"value": 2}
+        assert "X-FastAPI-Cache" in response.headers
+        assert response.json() == {"value": 1}
 
 
 def test_alternate_injected_namespace() -> None:
     with TestClient(app) as client:
         response = client.get("/namespaced_injection")
         assert response.headers.get("X-FastAPI-Cache") == "MISS"
-        assert response.json() == {"__fastapi_cache_request": 42, "__fastapi_cache_response": 17}
+        assert response.json() == {
+            "__fastapi_cache_request": 42,
+            "__fastapi_cache_response": 17,
+        }
