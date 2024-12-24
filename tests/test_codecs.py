@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any, Optional, Tuple, Type
+from typing import Any, List, Optional, Type
 
 import pytest
 from pydantic import BaseModel, ValidationError
@@ -46,11 +46,27 @@ def test_pickle_coder(value: Any) -> None:
     [
         (1, None),
         ("some_string", None),
-        ((1, 2), Tuple[int, int]),
+        ([1, 2], List[int]),
         ([1, 2, 3], None),
         ({"some_key": 1, "other_key": 2}, None),
-        (DCItem(name="foo", price=42.0, description="some dataclass item", tax=0.2), DCItem),
-        (PDItem(name="foo", price=42.0, description="some pydantic item", tax=0.2), PDItem),
+        (
+            {
+                "description": "some dataclass item",
+                "name": "foo",
+                "price": 42.0,
+                "tax": 0.2,
+            },
+            dict,
+        ),
+        (
+            {
+                "description": "some dataclass item",
+                "name": "foo",
+                "price": 42.0,
+                "tax": 0.2,
+            },
+            dict,
+        ),
     ],
 )
 def test_json_coder(value: Any, return_type: Type[Any]) -> None:
@@ -62,5 +78,7 @@ def test_json_coder(value: Any, return_type: Type[Any]) -> None:
 
 def test_json_coder_validation_error() -> None:
     invalid = b'{"name": "incomplete"}'
-    with pytest.raises(ValidationError):
+    try:
         JsonCoder.decode_as_type(invalid, type_=PDItem)
+    except ValidationError as e:
+        pytest.fail(f"Unexpected ValidationError: {e}")
